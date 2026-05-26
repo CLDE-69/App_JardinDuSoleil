@@ -62,3 +62,6 @@ with st.expander("➕ Ajouter un travail personnalisé"):
     st.components.v1.iframe(url_formulaire, height=600, scrolling=True)
 
     st.info("💡 Une fois envoyé, rafraîchissez la page de l'application pour voir votre nouvelle tâche apparaître !")
+
+with st.bottom:
+    st.caption("© 2026 made with love by CLDE. All right reserved", text_alignment="center")
