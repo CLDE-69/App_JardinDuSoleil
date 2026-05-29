@@ -66,5 +66,5 @@ else:
             st.caption(f"📍 {row['Zone']} | 📅 {row['Quinzaine']} . {row['Mois']} | {badge}")
 
 # --- AJOUT DU FOOTER VALIDE ---
-with st.bottom():
+with st.bottom:
     st.caption("© 2026 made with love by CLDE. All rights reserved", text_alignment="center")
