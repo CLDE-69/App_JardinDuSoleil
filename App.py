@@ -1,67 +1,70 @@
 import streamlit as st
 import pandas as pd
 
-# Configuration de la page mobile-friendly
-st.set_page_config(page_title="Mon Jardin", layout="centered")
+# --- CHARGEMENT DES DONNÉES ---
+# (Assure-toi que l'onglet "Total" est bien le premier onglet à gauche dans ton Google Sheets)
+url = st.secrets["url_donnees"]
+df = pd.read_csv(url)
 
+st.title("🌱 Mon Jardin du Soleil")
 
-st.title("🌱 Mon Agenda Jardin & Potager")
+# --- SYSTÈME DE FILTRES ERGONOMIQUES ---
 
-# 1. Connexion sécurisée et directe via Pandas
-@st.cache_data(ttl=600)  # Cache de 10 minutes
-def charger_donnees():
-    # On va chercher l'URL cachée dans les secrets
-    url = st.secrets["url_donnees"]
-    # Pandas télécharge et lit directement le CSV
-    return pd.read_csv(url)
+# 1. Filtre par Saison (génère de superbes onglets horizontaux)
+saisons_disponibles = ["Hiver", "Printemps", "Été", "Automne"]
+saison_choisie = st.radio(
+    "🍂 Choisissez une saison :",
+    saisons_disponibles,
+    horizontal=True
+)
 
-try:
-    df = charger_donnees()
-    st.success("Connexion réussie ! 🎉 Les données sont chargées.")
-except Exception as e:
-    st.error("Erreur de récupération des données :")
-    st.exception(e)
-    st.stop()
+# On filtre le tableau selon la saison choisie
+df_filtre = df[df['Saison'] == saison_choisie]
 
-# 2. Filtre par mois
-liste_mois = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre",
-              "Novembre", "Décembre"]
-mois_choisi = st.selectbox("Choisissez un mois à afficher :", liste_mois, index=4)  # Mai par défaut
+# 2. Filtres complémentaires en ligne
+col1, col2, col3 = st.columns(3)
 
-# 3. Filtrage des données
-travaux_du_mois = df[df["Mois"] == mois_choisi]
+with col1:
+    # Liste dynamique des mois correspondants à cette saison
+    mois_disponibles = df_filtre['Mois'].unique() if not df_filtre.empty else []
+    mois_choisi = st.selectbox("📅 Mois :", mois_disponibles)
+    if mois_choisi:
+        df_filtre = df_filtre[df_filtre['Mois'] == mois_choisi]
 
-# 4. Affichage des résultats
-st.subheader(f"🗓️ Travaux de {mois_choisi}")
+with col2:
+    # Choix de la quinzaine
+    quinzaine_choisie = st.selectbox("⏳ Période :", ["Toutes", "1ère quinzaine", "2ème quinzaine"])
+    if quinzaine_choisie != "Toutes" and not df_filtre.empty:
+        df_filtre = df_filtre[df_filtre['Quinzaine'] == quinzaine_choisie]
 
-if travaux_du_mois.empty:
-    st.info("Aucun travail de prévu pour ce mois-ci. Profitez-en pour vous reposer ! ☕")
-else:
-    zones = travaux_du_mois["Zone"].unique()
-    for zone in zones:
-        st.write(f"### 🏡 {zone}")
-        travaux_zone = travaux_du_mois[travaux_du_mois["Zone"] == zone]
+with col3:
+    # Choix de la zone
+    zone_choisie = st.selectbox("🏡 Zone :", ["Tout le jardin", "Potager", "Jardin"])
+    if zone_choisie != "Tout le jardin" and not df_filtre.empty:
+        df_filtre = df_filtre[df_filtre['Zone'] == zone_choisie]
 
-        for index, row in travaux_zone.iterrows():
-            st.markdown(f"**{row['Action']}** : *{row['Plante']}*")
-            if pd.notna(row['Description']):
-                st.caption(f"ℹ️ {row['Description']}")
-            st.divider()
-
-# 5. Zone d'ajout de tâche personnalisée (à coller tout en bas de app.py)
+# --- AFFICHAGE DES TRAVAUX ---
 st.divider()
+if mois_choisi:
+    st.subheader(
+        f"📋 Travaux de {mois_choisi} ({quinzaine_choisie.lower() if quinzaine_choisie != 'Toutes' else 'mois complet'})")
 
-# Un "expander" permet de cacher le formulaire pour ne pas encombrer l'écran du téléphone
-with st.expander("➕ Ajouter un travail personnalisé"):
-    st.write("Remplissez le formulaire ci-dessous pour ajouter une tâche à votre calendrier :")
+if df_filtre.empty:
+    st.info("🦥 Pas de travaux spécifiques prévus pour cette sélection. Repos ou observation !")
+else:
+    # Affichage propre sous forme de liste de cartes de lecture
+    for index, row in df_filtre.iterrows():
+        # Détermination d'un émoji sympa selon la zone
+        emoji = "🥕" if row['Zone'] == "Potager" else "🌸"
 
-    # REMPLACEZ LE LIEN CI-DESSOUS PAR VOTRE LIEN GOOGLE FORM COPIÉ À L'ÉTAPE 1
-    url_formulaire = "https://docs.google.com/forms/d/e/1FAIpQLSc0_V-2o_wAWKTJW2PvHLgbqro_Dq5PjvrpRXwso5vxtR1tiA/viewform?usp=publish-editor"
+        # Style du badge (Perso ou Livre)
+        badge = "📚 Source" if row['Type'] == 'Livre' else "➕ Mon Ajout"
 
-    # Cette ligne permet d'intégrer proprement le formulaire Google dans l'interface Streamlit
-    st.components.v1.iframe(url_formulaire, height=600, scrolling=True)
+        with st.container(border=True):
+            st.markdown(f"### {emoji} {row['Action']} : **{row['Plante / Cible']}**")
+            st.write(row['Description / Précision'])
+            st.caption(f"📍 {row['Zone']} | {row['Quinzaine']} | {badge}")
 
-    st.info("💡 Une fois envoyé, rafraîchissez la page de l'application pour voir votre nouvelle tâche apparaître !")
-
-with st.bottom:
-    st.caption("© 2026 made with love by CLDE. All right reserved", text_alignment="center")
+# --- AJOUT DU FOOTER VALIDE ---
+with st.bottom():
+    st.caption("© 2026 made with love by CLDE. All rights reserved", text_alignment="center")
