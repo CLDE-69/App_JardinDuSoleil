@@ -67,4 +67,8 @@ else:
 
 # --- AJOUT DU FOOTER VALIDE ---
 with st.bottom:
-    st.caption("© 2026 made with love by CLDE. All rights reserved", text_alignment="center")
+    st.caption(
+        "© 2026 made with love by CLDE. All rights reserved",
+        text_alignment="center",
+        icon=":material/favorite:"
+    )
