@@ -63,7 +63,7 @@ else:
         with st.container(border=True):
             st.markdown(f"### {emoji} {row['Action']} : **{row['Plante / Cible']}**")
             st.write(row['Description / Précision'])
-            st.caption(f"📍 {row['Zone']} | {row['Quinzaine']} | {badge}")
+            st.caption(f"📍 {row['Zone']} | 📅 {row['Quinzaine']} . {row['Mois']} | {badge}")
 
 # --- AJOUT DU FOOTER VALIDE ---
 with st.bottom():
