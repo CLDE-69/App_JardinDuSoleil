@@ -73,7 +73,7 @@ with st.expander("➕ Ajouter un travail personnalisé"):
     st.write("Remplissez le formulaire ci-dessous pour ajouter une tâche à votre calendrier :")
 
     # REMPLACEZ LE LIEN CI-DESSOUS PAR VOTRE LIEN GOOGLE FORM COPIÉ À L'ÉTAPE 1
-    url_formulaire = "https://docs.google.com/forms/d/e/VOTRE_ID_DE_FORMULAIRE/viewform?embedded=true"
+    url_formulaire = "https://docs.google.com/forms/d/e/1FAIpQLSc0_V-2o_wAWKTJW2PvHLgbqro_Dq5PjvrpRXwso5vxtR1tiA/viewform"
 
     # Cette ligne permet d'intégrer proprement le formulaire Google dans l'interface Streamlit
     st.components.v1.iframe(url_formulaire, height=600, scrolling=True)
