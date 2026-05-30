@@ -15,7 +15,7 @@ def charger_donnees():
 
     # Nettoyage rapide des espaces dans les noms pour correspondre parfaitement
     df_t['Plante / Cible'] = df_t['Plante / Cible'].str.strip()
-    df_p['Plantes'] = df_p['Plantes'].str.strip()
+    df_p['Plante'] = df_p['Plante'].str.strip()
 
     return df_t, df_p
 
