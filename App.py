@@ -21,10 +21,12 @@ def charger_donnees():
 
 try:
     df, df_plantes = charger_donnees()
+# except Exception as e:
+#     st.error("Erreur lors du chargement des onglets Google Sheets. Vérifiez les URLs dans les Secrets.")
+#     st.stop()
 except Exception as e:
-    st.error("Erreur lors du chargement des onglets Google Sheets. Vérifiez les URLs dans les Secrets.")
+    st.error(f"Détail de l'erreur : {e}")
     st.stop()
-
 
 # --- FONCTION POP-UP (FICHE DE CULTURE VINTAGE) ---
 @st.dialog("📖 Fiche de Culture Technique")
