@@ -65,6 +65,21 @@ else:
             st.write(row['Description / Précision'])
             st.caption(f"📍 {row['Zone']} | 📅 {row['Quinzaine']} . {row['Mois']} | {badge}")
 
+# 5. Zone d'ajout de tâche personnalisée (à coller tout en bas de app.py)
+st.divider()
+
+# Un "expander" permet de cacher le formulaire pour ne pas encombrer l'écran du téléphone
+with st.expander("➕ Ajouter un travail personnalisé"):
+    st.write("Remplissez le formulaire ci-dessous pour ajouter une tâche à votre calendrier :")
+
+    # REMPLACEZ LE LIEN CI-DESSOUS PAR VOTRE LIEN GOOGLE FORM COPIÉ À L'ÉTAPE 1
+    url_formulaire = "https://docs.google.com/forms/d/e/VOTRE_ID_DE_FORMULAIRE/viewform?embedded=true"
+
+    # Cette ligne permet d'intégrer proprement le formulaire Google dans l'interface Streamlit
+    st.components.v1.iframe(url_formulaire, height=600, scrolling=True)
+
+    st.info("💡 Une fois envoyé, rafraîchissez la page de l'application pour voir votre nouvelle tâche apparaître !")*
+
 # --- AJOUT DU FOOTER VALIDE ---
 with st.bottom:
     st.caption(
