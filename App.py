@@ -78,7 +78,7 @@ with st.expander("➕ Ajouter un travail personnalisé"):
     # Cette ligne permet d'intégrer proprement le formulaire Google dans l'interface Streamlit
     st.components.v1.iframe(url_formulaire, height=600, scrolling=True)
 
-    st.info("💡 Une fois envoyé, rafraîchissez la page de l'application pour voir votre nouvelle tâche apparaître !")*
+    st.info("💡 Une fois envoyé, rafraîchissez la page de l'application pour voir votre nouvelle tâche apparaître !")
 
 # --- AJOUT DU FOOTER VALIDE ---
 with st.bottom:
