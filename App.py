@@ -85,13 +85,38 @@ saison_choisie = st.radio(
 df_filtre = df[df['Saison'] == saison_choisie]
 
 # 2. Filtres complémentaires secondaires (Mois / Quinzaine / Zone)
+mois_ordre = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
+
+if 'mois_choisi' not in st.session_state:
+    st.session_state['mois_choisi'] = None
+
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    mois_disponibles = df_filtre['Mois'].unique() if not df_filtre.empty else []
-    mois_choisi = st.selectbox("📅 Mois :", mois_disponibles)
-    if mois_choisi:
-        df_filtre = df_filtre[df_filtre['Mois'] == mois_choisi]
+    mois_disponibles = [m for m in mois_ordre if m in set(df_filtre['Mois'].unique())] if not df_filtre.empty else []
+
+    if mois_disponibles:
+        if st.session_state['mois_choisi'] not in mois_disponibles:
+            st.session_state['mois_choisi'] = mois_disponibles[0]
+
+        c_prev, c_sel, c_next = st.columns([1, 3, 1])
+        with c_prev:
+            if st.button("←", key="btn_mois_prev", help="Mois précédent", use_container_width=True):
+                idx = mois_disponibles.index(st.session_state['mois_choisi'])
+                st.session_state['mois_choisi'] = mois_disponibles[idx - 1] if idx > 0 else mois_disponibles[-1]
+        with c_sel:
+            mois_choisi = st.selectbox("📅 Mois :", mois_disponibles, index=mois_disponibles.index(st.session_state['mois_choisi']))
+            st.session_state['mois_choisi'] = mois_choisi
+        with c_next:
+            if st.button("→", key="btn_mois_next", help="Mois suivant", use_container_width=True):
+                idx = mois_disponibles.index(st.session_state['mois_choisi'])
+                st.session_state['mois_choisi'] = mois_disponibles[(idx + 1) % len(mois_disponibles)]
+
+        if mois_choisi:
+            df_filtre = df_filtre[df_filtre['Mois'] == mois_choisi]
+    else:
+        mois_choisi = None
+        st.info("Aucun mois disponible pour cette saison.")
 
 with col2:
     quinzaine_choisie = st.selectbox("⏳ Période :", ["Toutes", "1ère quinzaine", "2ème quinzaine"])
@@ -103,22 +128,28 @@ with col3:
     if zone_choisie != "Tout" and not df_filtre.empty:
         df_filtre = df_filtre[df_filtre['Zone'] == zone_choisie]
 
-# --- AFFICHAGE DES CARTES DE TRAVAUX ---
-st.divider()
-if mois_choisi:
-    st.subheader(
-        f"📋 Travaux de {mois_choisi} ({quinzaine_choisie.lower() if quinzaine_choisie != 'Toutes' else 'mois complet'})")
+# --- AFFICHAGE DES VUES : LISTE OU CALENDRIER ---
+def afficher_boutons_fiches(row, identifiant, df_plantes):
+    cellule_plante = str(row['Plante / Cible'])
+    plantes_candidates = [p.strip() for p in cellule_plante.split(",") if p.strip()]
 
-if df_filtre.empty:
-    st.info("🦥 Pas de travaux spécifiques prévus pour cette sélection. Repos ou observation !")
-else:
+    for plante_nom in plantes_candidates:
+        existe = df_plantes['Plante'].str.lower().eq(plante_nom.lower()).any()
+        if existe:
+            if st.button(f"📖 {plante_nom}", key=f"btn_{identifiant}_{plante_nom}"):
+                afficher_fiche_plante(plante_nom)
+
+
+def afficher_vue_liste(df_filtre, df_plantes):
+    if df_filtre.empty:
+        st.info("🦥 Pas de travaux spécifiques prévus pour cette sélection. Repos ou observation !")
+        return
+
     for index, row in df_filtre.iterrows():
         emoji = "🥕" if row['Zone'] == "Potager" else "🌸"
         badge = "📚 Source" if row['Type'] == 'Livre' else "➕ Mon Ajout"
 
-        # Création de la carte pour chaque tâche
         with st.container(border=True):
-            # Zone de texte à gauche, zone de boutons à droite
             c_texte, c_bouton = st.columns([0.70, 0.30], vertical_alignment="center")
 
             with c_texte:
@@ -127,21 +158,83 @@ else:
                 st.caption(f"📍 {row['Zone']} | {row['Quinzaine']} | {badge}")
 
             with c_bouton:
-                # 1. On récupère la cellule "Plante / Cible" (ex: "Carotte, Chou, Laitue")
-                cellule_plante = str(row['Plante / Cible'])
+                afficher_boutons_fiches(row, f"liste_{index}", df_plantes)
 
-                # 2. On la découpe par les virgules et on nettoie les espaces
-                plantes_candidates = [p.strip() for p in cellule_plante.split(",")]
 
-                # 3. Pour chaque plante isolée, on vérifie si sa fiche existe
-                for plante_nom in plantes_candidates:
-                    # Vérification insensible à la casse
-                    existe = df_plantes['Plante'].str.lower().eq(plante_nom.lower()).any()
+def afficher_vue_calendrier(df_filtre, df_plantes):
+    if df_filtre.empty:
+        st.info("🗓️ Aucune intervention prévue pour cette sélection dans le calendrier par quinzaine.")
+        return
 
-                    if existe:
-                        # On affiche un bouton personnalisé pour CHAQUE légume trouvé
-                        if st.button(f"📖 {plante_nom}", key=f"btn_{index}_{plante_nom}"):
-                            afficher_fiche_plante(plante_nom)
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Interventions", len(df_filtre))
+    c2.metric("Potager", int((df_filtre['Zone'] == 'Potager').sum()))
+    c3.metric("Jardin", int((df_filtre['Zone'] == 'Jardin').sum()))
+    st.caption("Vue mensuelle par quinzaine pour visualiser les actions à anticiper.")
+
+    quinzaines_ordonnees = ["1ère quinzaine", "2ème quinzaine"]
+    groupes = {q: [] for q in quinzaines_ordonnees}
+
+    for _, row in df_filtre.iterrows():
+        quinzaine = str(row['Quinzaine']).strip() if pd.notna(row['Quinzaine']) else ""
+        if quinzaine in groupes:
+            groupes[quinzaine].append(row)
+        elif quinzaine:
+            groupes.setdefault(quinzaine, []).append(row)
+
+    for quinzaine in quinzaines_ordonnees:
+        if not groupes[quinzaine]:
+            continue
+
+        bg_color = "#ecfdf3" if quinzaine == "1ère quinzaine" else "#fefce8"
+        border_color = "#22c55e" if quinzaine == "1ère quinzaine" else "#f59e0b"
+
+        st.markdown(
+            f"""
+            <div style="background-color:{bg_color}; border:1px solid {border_color}; border-radius:10px; padding:12px 14px; margin-bottom:12px;">
+                <div style="font-weight:700; color:#14532d; margin-bottom:8px;">📅 {quinzaine}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        for idx, row in enumerate(groupes[quinzaine]):
+            emoji = "🥕" if row['Zone'] == "Potager" else "🌸"
+            badge = "📚 Source" if row['Type'] == 'Livre' else "➕ Mon Ajout"
+            card_bg = "#f0fdf4" if row['Zone'] == "Potager" else "#fff7ed"
+            accent_color = "#16a34a" if row['Zone'] == "Potager" else "#ea580c"
+            description = str(row['Description / Précision']).strip() if pd.notna(row['Description / Précision']) else ""
+
+            st.markdown(
+                f"""
+                <div style="background-color:{card_bg}; border-left:4px solid {accent_color}; border-radius:8px; padding:10px 12px; margin-bottom:8px;">
+                    <div style="font-weight:700; margin-bottom:4px;">{emoji} {row['Action']} — {row['Plante / Cible']}</div>
+                    <div style="margin-bottom:4px;">{description}</div>
+                    <div style="font-size:0.9em; color:#475569;">📍 {row['Zone']} · {row['Mois']} · {badge}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            afficher_boutons_fiches(row, f"cal_{quinzaine}_{idx}", df_plantes)
+            st.divider()
+
+
+st.divider()
+if mois_choisi:
+    st.subheader(
+        f"📋 Travaux de {mois_choisi} ({quinzaine_choisie.lower() if quinzaine_choisie != 'Toutes' else 'mois complet'})")
+
+vue_choisie = st.radio(
+    "🧭 Affichage :",
+    ["Liste", "Calendrier"],
+    horizontal=True,
+    key="vue_affichage"
+)
+
+if vue_choisie == "Calendrier":
+    afficher_vue_calendrier(df_filtre, df_plantes)
+else:
+    afficher_vue_liste(df_filtre, df_plantes)
 
 # --- AJOUT DU FOOTER VALIDE ---
 with st.bottom:
