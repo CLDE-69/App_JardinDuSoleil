@@ -40,7 +40,7 @@ def afficher_fiche_plante(nom_plante):
 
         # Affichage de l'illustration ancienne
         if pd.notna(row['URL_Image_Vintage']):
-            st.image(row['URL_Image_Vintage'], caption=f"Illustration ancienne de {row['Plante']}",
+            st.image(row['URL_Image_Vintage'],
                      use_container_width=True)
 
         # Structure en colonnes des données agronomiques
