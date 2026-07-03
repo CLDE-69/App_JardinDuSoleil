@@ -219,6 +219,77 @@ def afficher_vue_calendrier(df_filtre, df_plantes):
             st.divider()
 
 
+def afficher_vue_agenda(df_filtre, df_plantes):
+    if df_filtre.empty:
+        st.info("📆 Aucune intervention prévue pour cette sélection dans l'agenda.")
+        return
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Interventions", len(df_filtre))
+    c2.metric("Potager", int((df_filtre['Zone'] == 'Potager').sum()))
+    c3.metric("Jardin", int((df_filtre['Zone'] == 'Jardin').sum()))
+    st.caption("Vue agenda : visualisez les deux quinzaines du mois côte à côte.")
+
+    quinzaines_ordonnees = ["1ère quinzaine", "2ème quinzaine"]
+    groupes = {q: [] for q in quinzaines_ordonnees}
+
+    for _, row in df_filtre.iterrows():
+        quinzaine = str(row['Quinzaine']).strip() if pd.notna(row['Quinzaine']) else ""
+        if quinzaine in groupes:
+            groupes[quinzaine].append(row)
+        elif quinzaine:
+            groupes.setdefault(quinzaine, []).append(row)
+
+    col_q1, col_q2 = st.columns(2, gap="medium")
+
+    for idx, quinzaine in enumerate(quinzaines_ordonnees):
+        col = col_q1 if idx == 0 else col_q2
+        with col:
+            if not groupes[quinzaine]:
+                col.markdown(
+                    f"""
+                    <div style="background-color:#f3f4f6; border-radius:10px; padding:20px; text-align:center; color:#6b7280;">
+                        <div style="font-size:14px;">Aucune intervention</div>
+                        <div style="font-size:12px; margin-top:8px;">{quinzaine}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+            else:
+                bg_header = "#dcfce7" if quinzaine == "1ère quinzaine" else "#fef3c7"
+                text_header = "#15803d" if quinzaine == "1ère quinzaine" else "#b45309"
+
+                col.markdown(
+                    f"""
+                    <div style="background-color:{bg_header}; border-radius:8px 8px 0 0; padding:14px; text-align:center; border-bottom:2px solid {'#22c55e' if quinzaine == '1ère quinzaine' else '#f59e0b'};">
+                        <div style="font-weight:800; font-size:16px; color:{text_header};">📅 {quinzaine}</div>
+                        <div style="font-size:12px; color:{text_header}; margin-top:4px;">({len(groupes[quinzaine])} action{'s' if len(groupes[quinzaine]) > 1 else ''})</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+                for idx, row in enumerate(groupes[quinzaine]):
+                    emoji = "🥕" if row['Zone'] == "Potager" else "🌸"
+                    badge_text = "📚" if row['Type'] == 'Livre' else "✏️"
+                    card_bg = "#f0fdf4" if row['Zone'] == "Potager" else "#fff7ed"
+                    accent_color = "#22c55e" if row['Zone'] == "Potager" else "#f59e0b"
+                    description = str(row['Description / Précision']).strip() if pd.notna(row['Description / Précision']) else ""
+
+                    col.markdown(
+                        f"""
+                        <div style="background-color:{card_bg}; border-left:3px solid {accent_color}; border-radius:4px; padding:10px; margin-top:8px;">
+                            <div style="font-weight:700; font-size:13px; margin-bottom:3px;">{emoji} {row['Action']}</div>
+                            <div style="font-size:12px; font-weight:600; margin-bottom:3px; color:#404040;">{row['Plante / Cible']}</div>
+                            <div style="font-size:11px; color:#666; margin-bottom:6px; line-height:1.4;">{description}</div>
+                            <div style="font-size:10px; color:#888;">🏷️ {row['Zone']} {badge_text}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                    afficher_boutons_fiches(row, f"agenda_{quinzaine}_{idx}", df_plantes)
+
+
 st.divider()
 if mois_choisi:
     st.subheader(
@@ -226,12 +297,14 @@ if mois_choisi:
 
 vue_choisie = st.radio(
     "🧭 Affichage :",
-    ["Liste", "Calendrier"],
+    ["Liste", "Calendrier", "Agenda"],
     horizontal=True,
     key="vue_affichage"
 )
 
-if vue_choisie == "Calendrier":
+if vue_choisie == "Agenda":
+    afficher_vue_agenda(df_filtre, df_plantes)
+elif vue_choisie == "Calendrier":
     afficher_vue_calendrier(df_filtre, df_plantes)
 else:
     afficher_vue_liste(df_filtre, df_plantes)
