@@ -49,10 +49,10 @@ def afficher_fiche_plante(nom_plante):
         with c1:
             st.markdown(f"**📏 Écartement sur le rang :** \n{row['Distance_Rang']}")
             st.markdown(f"**↔️ Écartement entre rangs :** \n{row['Distance_Entre_Rang']}")
-            st.markdown(f"**🥩 Gourmandise du sol :** \n{row['Gourmandise']}")
+            st.markdown(f"**🪱 Gourmandise du sol :** \n{row['Gourmandise']}")
         with c2:
             st.markdown(f"**🌱 Période de semis :** \n{row['Semis_Periode']}")
-            st.markdown(f"**🪵 Période de plantation :** \n{row['Plantation_Periode']}")
+            st.markdown(f"**🪴 Période de plantation :** \n{row['Plantation_Periode']}")
 
         st.divider()
 
@@ -75,9 +75,9 @@ def afficher_fiche_plante(nom_plante):
 st.title("🌱 Mon Jardin du Soleil")
 
 # 1. Filtre par Saison via des onglets horizontaux cliquables
-saisons_disponibles = ["Hiver", "Printemps", "Été", "Automne"]
+saisons_disponibles = ["❄️Hiver", "🌸Printemps", "☀️Été", "🍂Automne"]
 saison_choisie = st.radio(
-    "🍂 Choisissez une saison :",
+    "Choisissez une saison :",
     saisons_disponibles,
     horizontal=True
 )
