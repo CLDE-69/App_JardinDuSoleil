@@ -75,7 +75,7 @@ def afficher_fiche_plante(nom_plante):
 st.title("🌱 Mon Jardin du Soleil")
 
 # 1. Filtre par Saison via des onglets horizontaux cliquables
-saisons_disponibles = ["❄️Hiver", "🌸Printemps", "☀️Été", "🍂Automne"]
+saisons_disponibles = ["Hiver", "Printemps", "Été", "Automne"]
 saison_choisie = st.radio(
     "Choisissez une saison :",
     saisons_disponibles,
