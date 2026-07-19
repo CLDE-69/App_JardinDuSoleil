@@ -310,4 +310,5 @@ else:
     afficher_vue_liste(df_filtre, df_plantes)
 
 # --- FOOTER CLASSIQUE INTER-VERSIONS ---
-st.bottom.caption["© Jardin du Soleil 2026 · Made with ❤️ by CLDE"]
+with st.bottom:
+    st.caption("© 2024 Jardin du Soleil | Développé par [Votre Nom] | Données issues de Google Sheets")
