@@ -309,6 +309,5 @@ elif vue_choisie == "Calendrier":
 else:
     afficher_vue_liste(df_filtre, df_plantes)
 
-# --- AJOUT DU FOOTER VALIDE ---
-with st.bottom:
-    st.caption("© 2026 Jardin du Soleil | Made with ❤️ by CLDE")
+# --- FOOTER CLASSIQUE INTER-VERSIONS ---
+st.bottom.caption["© Jardin du Soleil 2026 · Made with ❤️ by CLDE"]
