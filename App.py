@@ -310,10 +310,5 @@ else:
     afficher_vue_liste(df_filtre, df_plantes)
 
 # --- AJOUT DU FOOTER VALIDE ---
-with st.bottom():
-    st.markdown(
-        "<p style='text-align: center; color: gray; font-size: 0.8em;'>"
-        "© 2026 made with love by CLDE. All rights reserved"
-        "</p>", 
-        unsafe_allow_html=True
-    )
+with st.bottom:
+    st.caption("© 2026 Jardin du Soleil | Made with ❤️ by CLDE")
