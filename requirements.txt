@@ -1,2 +1,2 @@
-streamlit
+streamlitpip install --upgrade streamlit
 pandas

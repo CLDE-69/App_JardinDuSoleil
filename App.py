@@ -309,6 +309,6 @@ elif vue_choisie == "Calendrier":
 else:
     afficher_vue_liste(df_filtre, df_plantes)
 
-# --- FOOTER CLASSIQUE INTER-VERSIONS ---
+# --- FOOTER ---
 with st.bottom:
-    st.caption("© 2024 Jardin du Soleil | Développé par [Votre Nom] | Données issues de Google Sheets")
+    st.caption("© 2026 Jardin du Soleil | Made with ❤️ by CLDE")
