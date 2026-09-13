@@ -1,2 +1,3 @@
-streamlitpip install --upgrade streamlit
+streamlit
 pandas
+requests
