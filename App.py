@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import streamlit as st
 import pandas as pd
 
@@ -76,28 +78,49 @@ st.title("🌱 Mon Jardin du Soleil")
 
 # 1. Filtre par Saison via des onglets horizontaux cliquables
 saisons_disponibles = ["Hiver", "Printemps", "Été", "Automne"]
-saison_choisie = st.radio(
-    "Choisissez une saison :",
-    saisons_disponibles,
-    horizontal=True
-)
-
-df_filtre = df[df['Saison'] == saison_choisie]
-
-# 2. Filtres complémentaires secondaires (Mois / Quinzaine / Zone)
 mois_ordre = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
+
+
+def saison_par_date(date_obj):
+    if date_obj.month in (12, 1, 2):
+        return "Hiver"
+    if date_obj.month in (3, 4, 5):
+        return "Printemps"
+    if date_obj.month in (6, 7, 8):
+        return "Été"
+    return "Automne"
+
+
+def mois_par_date(date_obj):
+    return mois_ordre[date_obj.month - 1]
+
+
+if 'saison_choisie' not in st.session_state:
+    st.session_state['saison_choisie'] = saison_par_date(datetime.now())
 
 if 'mois_choisi' not in st.session_state:
     st.session_state['mois_choisi'] = None
 
+saison_choisie = st.radio(
+    "Choisissez une saison :",
+    saisons_disponibles,
+    index=saisons_disponibles.index(st.session_state['saison_choisie']),
+    horizontal=True
+)
+st.session_state['saison_choisie'] = saison_choisie
+
+df_filtre = df[df['Saison'] == saison_choisie]
+
+# 2. Filtres complémentaires secondaires (Mois / Quinzaine / Zone)
 col1, col2, col3 = st.columns(3)
 
 with col1:
     mois_disponibles = [m for m in mois_ordre if m in set(df_filtre['Mois'].unique())] if not df_filtre.empty else []
 
     if mois_disponibles:
-        if st.session_state['mois_choisi'] not in mois_disponibles:
-            st.session_state['mois_choisi'] = mois_disponibles[0]
+        if st.session_state['mois_choisi'] is None or st.session_state['mois_choisi'] not in mois_disponibles:
+            mois_par_defaut = mois_par_date(datetime.now())
+            st.session_state['mois_choisi'] = mois_par_defaut if mois_par_defaut in mois_disponibles else mois_disponibles[0]
 
         c_prev, c_sel, c_next = st.columns([1, 3, 1])
         with c_prev:
